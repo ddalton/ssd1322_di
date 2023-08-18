@@ -15,21 +15,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b7e4c2464d97fe331d41de9d5db0def0a96f4d823b8b32a2efd503578988973"
 
 [[package]]
-name = "bare-metal"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5deb64efa5bd81e31fcd1938615a6d98c82eafcbcd787162b6f63b91d6bac5b3"
-dependencies = [
- "rustc_version",
-]
-
-[[package]]
-name = "bitfield"
-version = "0.13.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46afbd2983a5d5a7bd740ccb198caf5b82f45c40c09c0eed36052d91cb92e719"
-
-[[package]]
 name = "byte-slice-cast"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -40,38 +25,6 @@ name = "byteorder"
 version = "1.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
-
-[[package]]
-name = "cortex-m"
-version = "0.7.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ec610d8f49840a5b376c69663b6369e71f4b34484b9b2eb29fb918d92516cb9"
-dependencies = [
- "bare-metal",
- "bitfield",
- "embedded-hal",
- "volatile-register",
-]
-
-[[package]]
-name = "cortex-m-rt"
-version = "0.7.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee84e813d593101b1723e13ec38b6ab6abbdbaaa4546553f5395ed274079ddb1"
-dependencies = [
- "cortex-m-rt-macros",
-]
-
-[[package]]
-name = "cortex-m-rt-macros"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0f6f3e36f203cfedbc78b357fb28730aa2c6dc1ab060ee5c2405e843988d3c7"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
 
 [[package]]
 name = "display-interface"
@@ -92,9 +45,9 @@ dependencies = [
 
 [[package]]
 name = "embedded-graphics"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd2a8e0250a7e1212828166b01eed0219e488ebb2599f44624a29c9bd249f397"
+checksum = "0649998afacf6d575d126d83e68b78c0ab0e00ca2ac7e9b3db11b4cbe8274ef0"
 dependencies = [
  "az",
  "byteorder",
@@ -139,19 +92,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39617bc909d64b068dcffd0e3e31679195b5576d0c83fadc52690268cc2b2b55"
 
 [[package]]
-name = "mono-ssd1322"
-version = "0.1.0"
-dependencies = [
- "cortex-m",
- "cortex-m-rt",
- "display-interface",
- "display-interface-spi",
- "embedded-graphics",
- "embedded-graphics-core",
- "embedded-hal",
-]
-
-[[package]]
 name = "nb"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -176,81 +116,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "proc-macro2"
-version = "1.0.66"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18fb31db3f9bddb2ea821cde30a9f70117e3f119938b5ee630b7403aa6e2ead9"
+name = "ssd1322_di"
+version = "0.1.0"
 dependencies = [
- "unicode-ident",
+ "display-interface",
+ "display-interface-spi",
+ "embedded-graphics",
+ "embedded-hal",
 ]
-
-[[package]]
-name = "quote"
-version = "1.0.32"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50f3b39ccfb720540debaa0164757101c08ecb8d326b15358ce76a62c7e85965"
-dependencies = [
- "proc-macro2",
-]
-
-[[package]]
-name = "rustc_version"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "138e3e0acb6c9fb258b19b67cb8abd63c00679d2851805ea151465464fe9030a"
-dependencies = [
- "semver",
-]
-
-[[package]]
-name = "semver"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d7eb9ef2c18661902cc47e535f9bc51b78acd254da71d375c2f6720d9a40403"
-dependencies = [
- "semver-parser",
-]
-
-[[package]]
-name = "semver-parser"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
-
-[[package]]
-name = "syn"
-version = "1.0.109"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
-dependencies = [
- "proc-macro2",
- "quote",
- "unicode-ident",
-]
-
-[[package]]
-name = "unicode-ident"
-version = "1.0.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "301abaae475aa91687eb82514b328ab47a211a533026cb25fc3e519b86adfc3c"
-
-[[package]]
-name = "vcell"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77439c1b53d2303b20d9459b1ade71a83c716e3f9c34f3228c00e6f185d6c002"
 
 [[package]]
 name = "void"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a02e4885ed3bc0f2de90ea6dd45ebcbb66dacffe03547fadbb0eeae2770887d"
-
-[[package]]
-name = "volatile-register"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ee8f19f9d74293faf70901bc20ad067dc1ad390d2cbf1e3f75f721ffee908b6"
-dependencies = [
- "vcell",
-]

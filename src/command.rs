@@ -10,6 +10,8 @@ pub enum Command {
     SetRowAddress(u8, u8),
     WriteRAM,
     OscFreq(u8),
+    DisplayOn,
+    DisplayOff,
 }
 
 impl Command {
@@ -30,6 +32,12 @@ impl Command {
 
             // Increase display frame rate
             Command::OscFreq(fosc) => ([0xB3, ((0xF & fosc) << 4), 0], 2),
+
+            // Sleep mode off
+            Command::DisplayOn => ([0xAF, 0, 0], 1),
+
+            // Sleep mode on
+            Command::DisplayOff => ([0xAE, 0, 0], 1),
         };
 
         // Send command over the interface

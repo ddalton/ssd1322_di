@@ -1,39 +1,22 @@
 [package]
 authors = ["Dilip Dalton <dilipdalton@hotmail.com>"]
 categories = ["embedded", "no-std"]
-description = "`display-interface` compatible monochrome driver for the SSD1322 OLED display controller"
-documentation = "https://docs.rs/mono-ssd1322"
-repository = "https://github.com/ddalton/mono-ssd1322"
-keywords = ["no-std", "ssd1322", "oled", "embedded", "monochrome"]
+description = "`display-interface` compatible driver for the SSD1322 OLED display controller"
+documentation = "https://docs.rs/ssd1322_di"
+repository = "https://github.com/ddalton/ssd1322_di"
+keywords = ["no-std", "ssd1322", "oled", "embedded"]
 license = "MIT"
-name = "mono-ssd1322"
+name = "ssd1322_di"
 readme = "README.md"
 version = "0.1.0"
 edition = "2018"
 
-[package.metadata.docs.rs]
-targets = [ "thumbv7m-none-eabi", "thumbv7em-none-eabihf" ]
-
 [dependencies]
 embedded-hal = "^ 0.2"
 display-interface = "^ 0.4"
-embedded-graphics-core = { version = "^ 0.4", optional = true }
+embedded-graphics = "^ 0.8"
 
 [dev-dependencies]
-cortex-m = "^ 0.7"
-cortex-m-rt = "^ 0.7"
 embedded-graphics = "^ 0.8"
 display-interface-spi = "^ 0.4"
 
-[features]
-default = ["graphics"]
-graphics = ["embedded-graphics-core"]
-
-[profile.dev]
-codegen-units = 1
-incremental = false
-
-[profile.release]
-codegen-units = 1
-debug = true
-lto = true

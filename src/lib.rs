@@ -11,11 +11,5 @@
 //! Builder example
 extern crate embedded_hal as hal;
 
-pub mod builder;
 mod command;
-mod displaysize;
-mod graphics;
-pub mod prelude;
-pub mod properties;
-
-pub use crate::builder::Builder;
+mod display;
