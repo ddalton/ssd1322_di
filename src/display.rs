@@ -1,4 +1,6 @@
 //! main display module
+use core::convert::TryInto;
+
 use crate::command::Command;
 use display_interface::{DataFormat::U8, DisplayError, WriteOnlyDataCommand};
 use embedded_graphics::{
@@ -81,9 +83,7 @@ impl<DI> DrawTarget for Ssd1322<DI> {
             // Check if the pixel coordinates are out of bounds (negative or greater than
             // (255,63)). `DrawTarget` implementation are required to discard any out of bounds
             // pixels without returning an error or causing a panic.
-            if let Ok((x @ 0..=255, y @ 0..=63)) =
-                Ok::<(u8, u8), Self::Error>((coord.x as u8, coord.y as u8))
-            {
+            if let (x @ 0..=255, y @ 0..=63) = (coord.x as u8, coord.y as u8) {
                 // Calculate the index in the framebuffer.
                 let index: u8 = x / 2 + y * 128;
                 if x % 2 == 0 {
@@ -109,7 +109,10 @@ impl<DI> DrawTarget for Ssd1322<DI> {
 
 impl<DI> OriginDimensions for Ssd1322<DI> {
     fn size(&self) -> Size {
-        Size::new(64, 64)
+        Size::new(
+            DISPLAY_WIDTH.try_into().unwrap(),
+            DISPLAY_HEIGHT.try_into().unwrap(),
+        )
     }
 }
 
