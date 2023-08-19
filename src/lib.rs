@@ -1,6 +1,5 @@
 #![no_std]
 #![deny(missing_docs)]
-#![deny(missing_copy_implementations)]
 #![deny(trivial_casts)]
 #![deny(trivial_numeric_casts)]
 #![deny(unsafe_code)]
@@ -12,4 +11,4 @@
 extern crate embedded_hal as hal;
 
 mod command;
-mod display;
+pub mod display;
