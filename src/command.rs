@@ -38,81 +38,84 @@ impl Command {
     where
         DI: WriteOnlyDataCommand,
     {
+        let mut handle_command = |data: &[u8]| {
+            // Send command over the interface
+            iface.send_commands(DataFormat::U8(data))
+        };
         // Some commands are not supported, so the maximum array size needed is only 3 u8 along with the
         // real length
-        let (data, len) = match self {
+        match self {
             // Set command unlock
-            Command::Unlock => ([0xFD, 0x12, 0], 2),
+            Command::Unlock => handle_command(&[0xFD, 0x12]),
 
             // Set the bounding box
-            Command::SetColumnAddress(a, b) => ([0x15, a, b], 3),
-            Command::SetRowAddress(a, b) => ([0x75, a, b], 3),
+            Command::SetColumnAddress(a, b) => handle_command(&[0x15, a, b]),
+            Command::SetRowAddress(a, b) => handle_command(&[0x75, a, b]),
 
             // Set the divide and osc freq
-            Command::SetDisplayClock(a) => ([0xB3, a, 0], 2),
+            Command::SetDisplayClock(a) => handle_command(&[0xB3, a]),
 
             // Set the Multiplex ratio
-            Command::SetMuxRatio(a) => ([0xCA, a, 0], 2),
+            Command::SetMuxRatio(a) => handle_command(&[0xCA, a]),
 
             // Shift mapping RAM counter
-            Command::SetDisplayOffset(a) => ([0xA2, a, 0], 2),
+            Command::SetDisplayOffset(a) => handle_command(&[0xA2, a]),
 
             // Shift mapping RAM display start line
-            Command::SetStartLine(a) => ([0xA1, a, 0], 2),
+            Command::SetStartLine(a) => handle_command(&[0xA1, a]),
 
             // Set horizontal address increment
-            Command::SetRemapFormat(a, b) => ([0xA0, a, b], 3),
+            Command::SetRemapFormat(a, b) => handle_command(&[0xA0, a, b]),
 
             // GPIO pins
-            Command::SetGPIO(a) => ([0xB5, a, 0], 2),
+            Command::SetGPIO(a) => handle_command(&[0xB5, a]),
 
             // Function selection
-            Command::SetFunctionSelection(a) => ([0xAB, a, 0], 2),
+            Command::SetFunctionSelection(a) => handle_command(&[0xAB, a]),
 
             // Set Display Enhancement A
-            Command::SetDisplayEnhancementA(a, b) => ([0xB4, a, b], 3),
+            Command::SetDisplayEnhancementA(a, b) => handle_command(&[0xB4, a, b]),
 
             // Set Contrast current
-            Command::SetContrastCurrent(a) => ([0xC1, a, 0], 2),
+            Command::SetContrastCurrent(a) => handle_command(&[0xC1, a]),
 
             // Set Master current
-            Command::SetMasterCurrent(a) => ([0xC7, a, 0], 2),
+            Command::SetMasterCurrent(a) => handle_command(&[0xC7, a]),
 
             // Set linear gray scale table
-            Command::SetLinearGrayScaleTable => ([0xB9, 0, 0], 1),
+            Command::SetLinearGrayScaleTable => handle_command(&[0xB9]),
 
             // Set phase length
-            Command::SetPhaseLength(a) => ([0xB1, a, 0], 2),
+            Command::SetPhaseLength(a) => handle_command(&[0xB1, a]),
 
             // Set Display Enhancement B
-            Command::SetDisplayEnhancementB(a, b) => ([0xD1, a, b], 3),
+            Command::SetDisplayEnhancementB(a, b) => handle_command(&[0xD1, a, b]),
 
             // Set pre-charge voltage
-            Command::SetPrechargeVoltage(a) => ([0xBB, a, 0], 2),
+            Command::SetPrechargeVoltage(a) => handle_command(&[0xBB, a]),
 
             // Set pre-charge period
-            Command::SetPrechargePeriod(a) => ([0xB6, a, 0], 2),
+            Command::SetPrechargePeriod(a) => handle_command(&[0xB6, a]),
 
             // Set common pins voltage level
-            Command::SetVCOMH(a) => ([0xBE, a, 0], 2),
+            Command::SetVCOMH(a) => handle_command(&[0xBE, a]),
 
             // Set normal display mode
-            Command::NormalDisplayMode => ([0xA6, 0, 0], 1),
+            Command::NormalDisplayMode => handle_command(&[0xA6]),
 
             // Exit partial display
-            Command::ExitPartialDisplay => ([0xA9, 0, 0], 1),
+            Command::ExitPartialDisplay => handle_command(&[0xA9]),
 
             // Write the data following this command
-            Command::WriteRAM => ([0x5C, 0, 0], 1),
+            Command::WriteRAM => handle_command(&[0x5C]),
 
             // Sleep mode off
-            Command::DisplayOn => ([0xAF, 0, 0], 1),
+            Command::DisplayOn => handle_command(&[0xAF]),
 
             // Sleep mode on
-            Command::DisplayOff => ([0xAE, 0, 0], 1),
-        };
+            Command::DisplayOff => handle_command(&[0xAE]),
+        }?;
 
-        // Send command over the interface
-        iface.send_commands(DataFormat::U8(&data[0..len]))
+        Ok(())
     }
 }
