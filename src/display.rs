@@ -86,15 +86,11 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
 
     /// Flushes the display, and makes the output visible on the screen.
     pub fn flush(&mut self) -> Result<(), DisplayError> {
-        self.send_command(Command::SetColumnAddress(
-            0,
-            (DISPLAY_WIDTH / 4 - 1).try_into().unwrap(),
-        ))?;
-        self.send_command(Command::SetRowAddress(
-            0,
-            (DISPLAY_HEIGHT - 1).try_into().unwrap(),
-        ))?;
+        // There 3 commands might be optional
+        self.send_command(Command::SetColumnAddress(0x1C, 0x5B))?;
+        self.send_command(Command::SetRowAddress(0x00, 0x3F))?;
         self.send_command(Command::WriteRAM)?;
+
         self.display.send_data(U8(&self.buffer))
     }
 }
