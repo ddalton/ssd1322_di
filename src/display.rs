@@ -65,7 +65,7 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
         self.send_command(Command::SetGPIO(0x00))?;
         self.send_command(Command::SetFunctionSelection(0x01))?;
         self.send_command(Command::SetDisplayEnhancementA(0xA0, 0xFD))?;
-        self.send_command(Command::SetContrastCurrent(0x9F))?;
+        self.send_command(Command::SetContrastCurrent(0xCF))?;
         self.send_command(Command::SetMasterCurrent(0x0F))?;
         self.send_command(Command::SetLinearGrayScaleTable)?;
         self.send_command(Command::SetPhaseLength(0xE2))?;
@@ -74,6 +74,7 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
         self.send_command(Command::SetPrechargePeriod(0x08))?;
         self.send_command(Command::SetVCOMH(0x07))?;
         self.send_command(Command::NormalDisplayMode)?;
+        //self.send_command(Command::AllPixelsOn)?;
         self.send_command(Command::DisplayOn)?;
 
         Ok(())
@@ -86,12 +87,21 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
 
     /// Flushes the display, and makes the output visible on the screen.
     pub fn flush(&mut self) -> Result<(), DisplayError> {
-        // There 3 commands might be optional
         self.send_command(Command::SetColumnAddress(0x1C, 0x5B))?;
         self.send_command(Command::SetRowAddress(0x00, 0x3F))?;
         self.send_command(Command::WriteRAM)?;
-
         self.display.send_data(U8(&self.buffer))
+    }
+
+    /// Clears the whole screen
+    pub fn clear_all(&mut self) -> Result<(), DisplayError> {
+        self.send_command(Command::WriteRAM)?;
+
+        for _i in 0..64 {
+            let _ = self.display.send_data(U8(&[0x00; 128]));
+        }
+
+        Ok(())
     }
 }
 
@@ -109,7 +119,7 @@ impl<DI> DrawTarget for Ssd1322<DI> {
             // pixels without returning an error or causing a panic.
             if let (x @ 0..=255, y @ 0..=63) = (coord.x as usize, coord.y as usize) {
                 // Calculate the index in the framebuffer.
-                let index = x / 2 + y * DISPLAY_WIDTH / 2;
+                let index = (x / 2) + (y * (DISPLAY_WIDTH / 2));
                 if x % 2 == 0 {
                     self.buffer[index] = update_upper_nibble(self.buffer[index], color.luma());
                 } else {
@@ -125,6 +135,7 @@ impl<DI> DrawTarget for Ssd1322<DI> {
         let luma = fill.luma();
         let byte = (luma << 4) | luma;
         self.buffer.fill(byte);
+
         Ok(())
     }
 }
@@ -140,10 +151,10 @@ impl<DI> OriginDimensions for Ssd1322<DI> {
 
 #[inline]
 fn update_upper_nibble(input: u8, color: u8) -> u8 {
-    color << 4 | (input & 0x0F)
+    ((color << 4) & 0xF0) | (input & 0x0F)
 }
 
 #[inline]
 fn update_lower_nibble(input: u8, color: u8) -> u8 {
-    color & 0x0f | (input & 0xF0)
+    color & 0x0F | (input & 0xF0)
 }

@@ -26,6 +26,8 @@ pub enum Command {
     SetPrechargePeriod(u8),
     SetVCOMH(u8),
     NormalDisplayMode,
+    AllPixelsOn,
+    AllPixelsOff,
     ExitPartialDisplay,
     WriteRAM,
     DisplayOn,
@@ -40,10 +42,14 @@ impl Command {
     {
         let mut handle_command = |data: &[u8]| {
             // Send command over the interface
-            iface.send_commands(DataFormat::U8(data))
+            let _ = iface.send_commands(DataFormat::U8(&data[0..1]));
+
+            // If the command has any data portion then send that also
+            if data.len() > 1 {
+                let _ = iface.send_data(DataFormat::U8(&data[1..data.len()]));
+            }
         };
-        // Some commands are not supported, so the maximum array size needed is only 3 u8 along with the
-        // real length
+
         match self {
             // Set command unlock
             Command::Unlock => handle_command(&[0xFD, 0x12]),
@@ -103,6 +109,12 @@ impl Command {
             // Set normal display mode
             Command::NormalDisplayMode => handle_command(&[0xA6]),
 
+            // Set all pixels off
+            Command::AllPixelsOff => handle_command(&[0xA4]),
+
+            // Set all pixels on
+            Command::AllPixelsOn => handle_command(&[0xA5]),
+
             // Exit partial display
             Command::ExitPartialDisplay => handle_command(&[0xA9]),
 
@@ -114,7 +126,7 @@ impl Command {
 
             // Sleep mode on
             Command::DisplayOff => handle_command(&[0xAE]),
-        }?;
+        };
 
         Ok(())
     }
