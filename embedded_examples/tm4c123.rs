@@ -10,11 +10,12 @@ use panic_halt as _; // you can put a breakpoint on `rust_begin_unwind` to catch
 
 use cortex_m_rt::entry;
 use ssd1322_di::display;
-use tm4c123x_hal as hal;
-use tm4c123x_hal::delay::Delay;
-use tm4c123x_hal::gpio::GpioExt;
-use tm4c123x_hal::prelude::SysctlExt;
-use tm4c123x_hal::sysctl;
+extern crate tm4c123x_hal as hal;
+
+use hal::delay::Delay;
+use hal::gpio::GpioExt;
+use hal::prelude::SysctlExt;
+use hal::sysctl;
 use {
     display_interface_spi::SPIInterface,
     embedded_graphics::{

@@ -154,7 +154,7 @@ impl<DI> BoundingBox for Ssd1322<DI> {
     }
 }
 
-impl<DI: BoundingBox> DrawTarget for Ssd1322<DI> {
+impl<DI> DrawTarget for Ssd1322<DI> {
     type Color = Gray4;
     type Error = core::convert::Infallible;
 
@@ -177,7 +177,7 @@ impl<DI: BoundingBox> DrawTarget for Ssd1322<DI> {
 
                 // Update only if changed
                 if new_val != self.buffer[index] {
-                    self.display.update_box(x as u8, y as u8);
+                    self.update_box(x as u8, y as u8);
                     self.buffer[index] = new_val;
                 }
             }
@@ -212,4 +212,69 @@ fn update_upper_nibble(input: u8, color: u8) -> u8 {
 #[inline]
 fn update_lower_nibble(input: u8, color: u8) -> u8 {
     color & 0x0F | (input & 0xF0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use display_interface::DataFormat;
+    use embedded_graphics::{
+        mono_font::{ascii::FONT_6X10, MonoTextStyleBuilder},
+        pixelcolor::Gray4,
+        text::{Baseline, Text},
+    };
+    type Result = core::result::Result<(), DisplayError>;
+
+    pub struct TestInterface1 {}
+
+    impl WriteOnlyDataCommand for TestInterface1 {
+        fn send_commands(&mut self, _cmds: DataFormat<'_>) -> Result {
+            Ok(())
+        }
+
+        fn send_data(&mut self, buf: DataFormat<'_>) -> Result {
+            match buf {
+                U8(_slice) => Ok(()),
+                _ => Err(DisplayError::DataFormatNotImplemented),
+            }
+        }
+    }
+
+    #[test]
+    /// Tests the character '|'. The framebuffer looks like starting from beginning of row 0
+    /// where each '.' represents a pixel.
+    /// ......
+    /// ..x...
+    /// ..x...
+    /// ..x...
+    /// ..x...
+    /// ..x...
+    /// ..x...
+    /// ..x...
+    ///
+    fn single_char() {
+        let s = TestInterface1 {};
+        let mut disp = Ssd1322::new(s);
+
+        let text_style = MonoTextStyleBuilder::new()
+            .font(&FONT_6X10)
+            .text_color(Gray4::new(0b0000_1111))
+            .build();
+
+        Text::with_baseline("|", Point::new(0, 0), text_style, Baseline::Top)
+            .draw(&mut disp)
+            .unwrap();
+
+        assert_eq!(disp.bounding_box.unwrap().0[0], 1);
+        assert_eq!(disp.bounding_box.unwrap().0[1], 1);
+        assert_eq!(disp.bounding_box.unwrap().1[0], 1);
+        assert_eq!(disp.bounding_box.unwrap().1[1], 7);
+
+        for i in 1..8 {
+            let start = i * 128;
+            assert_eq!(&disp.buffer[start..start + 3], [0, 0xf0, 0]);
+        }
+
+        let _ = disp.flush_changed();
+    }
 }

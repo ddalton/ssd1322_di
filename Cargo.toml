@@ -11,6 +11,8 @@ readme = "README.md"
 version = "0.1.0"
 edition = "2018"
 
+exclude = ["examples/*"]
+
 [dependencies]
 embedded-hal = "^ 0.2"
 display-interface = "^ 0.4"
