@@ -19,6 +19,13 @@ const BUFFER_SIZE: usize = DISPLAY_WIDTH * DISPLAY_HEIGHT / 2;
 pub struct Ssd1322<DI> {
     display: DI,
     buffer: [u8; BUFFER_SIZE],
+    bounding_box: Option<([u8; 2], [u8; 2])>,
+}
+
+/// Provides an optimized way to capture changes to the framebuffer.
+pub trait BoundingBox {
+    /// Updates the bounding_box field to the modified area. The bounding_box unit is in bytes.
+    fn update_box(&mut self, x: u8, y: u8);
 }
 
 impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
@@ -29,6 +36,7 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
         Self {
             display,
             buffer: [0; BUFFER_SIZE],
+            bounding_box: None,
         }
     }
 
@@ -93,19 +101,60 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
         self.display.send_data(U8(&self.buffer))
     }
 
-    /// Clears the whole screen
-    pub fn clear_all(&mut self) -> Result<(), DisplayError> {
-        self.send_command(Command::WriteRAM)?;
+    /// Flushes only the changed portion of the display.
+    pub fn flush_changed(&mut self) -> Result<(), DisplayError> {
+        if let Some((col_addr, row_addr)) = self.bounding_box {
+            let num_col_bytes: usize = (col_addr[1] - col_addr[0] + 1).into();
 
-        for _i in 0..64 {
-            let _ = self.display.send_data(U8(&[0x00; 128]));
+            // Convert bytes to column address
+            self.send_command(Command::SetColumnAddress(
+                col_addr[0] / 2 + 0x1C,
+                col_addr[1] / 2 + 0x1C,
+            ))?;
+            self.send_command(Command::SetRowAddress(row_addr[0], row_addr[1]))?;
+            self.send_command(Command::WriteRAM)?;
+
+            for i in row_addr[0]..=row_addr[1] {
+                let start_col_byte: usize = col_addr[0] as usize + (i as usize * DISPLAY_WIDTH / 2);
+                let end_col_byte: usize = start_col_byte + num_col_bytes;
+                self.display
+                    .send_data(U8(&self.buffer[start_col_byte..end_col_byte]))?;
+            }
         }
 
         Ok(())
     }
 }
 
-impl<DI> DrawTarget for Ssd1322<DI> {
+impl<DI> BoundingBox for Ssd1322<DI> {
+    fn update_box(&mut self, x: u8, y: u8) {
+        match self.bounding_box {
+            Some((col_addr, row_addr)) => {
+                let mut new_col_addr: [u8; 2] = col_addr;
+                let mut new_row_addr: [u8; 2] = row_addr;
+
+                // Column address update
+                if x / 2 < col_addr[0] {
+                    new_col_addr = [x / 2, col_addr[1]];
+                } else if x / 2 > col_addr[1] {
+                    new_col_addr = [col_addr[0], x / 2];
+                }
+
+                // Row address update
+                if y < row_addr[0] {
+                    new_row_addr = [y, row_addr[1]];
+                } else if y > row_addr[1] {
+                    new_row_addr = [row_addr[0], y];
+                }
+
+                self.bounding_box = Some((new_col_addr, new_row_addr));
+            }
+            None => self.bounding_box = Some(([x / 2, x / 2], [y, y])),
+        }
+    }
+}
+
+impl<DI: BoundingBox> DrawTarget for Ssd1322<DI> {
     type Color = Gray4;
     type Error = core::convert::Infallible;
 
@@ -120,10 +169,16 @@ impl<DI> DrawTarget for Ssd1322<DI> {
             if let (x @ 0..=255, y @ 0..=63) = (coord.x as usize, coord.y as usize) {
                 // Calculate the index in the framebuffer.
                 let index = (x / 2) + (y * (DISPLAY_WIDTH / 2));
-                if x % 2 == 0 {
-                    self.buffer[index] = update_upper_nibble(self.buffer[index], color.luma());
+                let new_val: u8 = if x % 2 == 0 {
+                    update_upper_nibble(self.buffer[index], color.luma())
                 } else {
-                    self.buffer[index] = update_lower_nibble(self.buffer[index], color.luma());
+                    update_lower_nibble(self.buffer[index], color.luma())
+                };
+
+                // Update only if changed
+                if new_val != self.buffer[index] {
+                    self.display.update_box(x as u8, y as u8);
+                    self.buffer[index] = new_val;
                 }
             }
         }
