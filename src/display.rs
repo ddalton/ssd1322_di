@@ -20,6 +20,7 @@ pub struct Ssd1322<DI> {
     display: DI,
     buffer: [u8; BUFFER_SIZE],
     bounding_box: Option<([u8; 2], [u8; 2])>,
+    num_changed: u16,
 }
 
 /// Provides an optimized way to capture changes to the framebuffer.
@@ -37,6 +38,7 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
             display,
             buffer: [0; BUFFER_SIZE],
             bounding_box: None,
+            num_changed: 0,
         }
     }
 
@@ -120,6 +122,10 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
                 self.display
                     .send_data(U8(&self.buffer[start_col_byte..end_col_byte]))?;
             }
+
+            // Reset the bounding_box
+            self.bounding_box = None;
+            self.num_changed = 0;
         }
 
         Ok(())
@@ -177,6 +183,7 @@ impl<DI> DrawTarget for Ssd1322<DI> {
 
                 // Update only if changed
                 if new_val != self.buffer[index] {
+                    self.num_changed += 1;
                     self.update_box(x as u8, y as u8);
                     self.buffer[index] = new_val;
                 }
@@ -252,7 +259,7 @@ mod tests {
     /// ..x...
     /// ..x...
     ///
-    fn single_char() {
+    fn single_char_one_col() {
         let s = TestInterface1 {};
         let mut disp = Ssd1322::new(s);
 
@@ -269,11 +276,117 @@ mod tests {
         assert_eq!(disp.bounding_box.unwrap().0[1], 1);
         assert_eq!(disp.bounding_box.unwrap().1[0], 1);
         assert_eq!(disp.bounding_box.unwrap().1[1], 7);
+        assert_eq!(disp.num_changed, 7);
 
         for i in 1..8 {
             let start = i * 128;
             assert_eq!(&disp.buffer[start..start + 3], [0, 0xf0, 0]);
         }
+
+        let _ = disp.flush_changed();
+    }
+
+    #[test]
+    /// Tests the character 'A'. The framebuffer looks like starting from beginning of row 0
+    /// where each '.' represents a pixel.
+    /// ......
+    /// ..x...
+    /// .x.x..
+    /// x...x.
+    /// x...x.
+    /// xxxxx.
+    /// x...x.
+    /// x...x.
+    ///
+    fn single_char_multi_col() {
+        let s = TestInterface1 {};
+        let mut disp = Ssd1322::new(s);
+
+        let text_style = MonoTextStyleBuilder::new()
+            .font(&FONT_6X10)
+            .text_color(Gray4::new(0b0000_1111))
+            .build();
+
+        Text::with_baseline("A", Point::new(0, 0), text_style, Baseline::Top)
+            .draw(&mut disp)
+            .unwrap();
+
+        assert_eq!(disp.bounding_box.unwrap().0[0], 0);
+        assert_eq!(disp.bounding_box.unwrap().0[1], 2);
+        assert_eq!(disp.bounding_box.unwrap().1[0], 1);
+        assert_eq!(disp.bounding_box.unwrap().1[1], 7);
+        assert_eq!(disp.num_changed, 16);
+
+        let _ = disp.flush_changed();
+    }
+
+    #[test]
+    /// Tests the character 'A' at an offset.
+    /// .......
+    /// .......
+    /// .......
+    /// .......
+    /// .......
+    /// .......
+    /// ...x...
+    /// ..x.x..
+    /// .x...x.
+    /// .x...x.
+    /// .xxxxx.
+    /// .x...x.
+    /// .x...x.
+    ///
+    fn single_char_offset() {
+        let s = TestInterface1 {};
+        let mut disp = Ssd1322::new(s);
+
+        let text_style = MonoTextStyleBuilder::new()
+            .font(&FONT_6X10)
+            .text_color(Gray4::new(0b0000_1111))
+            .build();
+
+        Text::with_baseline("A", Point::new(1, 5), text_style, Baseline::Top)
+            .draw(&mut disp)
+            .unwrap();
+
+        assert_eq!(disp.bounding_box.unwrap().0[0], 0);
+        assert_eq!(disp.bounding_box.unwrap().0[1], 2);
+        assert_eq!(disp.bounding_box.unwrap().1[0], 6);
+        assert_eq!(disp.bounding_box.unwrap().1[1], 12);
+        assert_eq!(disp.num_changed, 16);
+
+        let _ = disp.flush_changed();
+    }
+
+    #[test]
+    /// Tests the character 'A' clipped at the right.
+    /// .......
+    /// ....... x
+    /// .......x x
+    /// ......x   x
+    /// ......x   x
+    /// ......xxxxx
+    /// ......x   x
+    /// ......x   x
+    ///
+    fn single_char_clipped() {
+        let s = TestInterface1 {};
+        let mut disp = Ssd1322::new(s);
+
+        let text_style = MonoTextStyleBuilder::new()
+            .font(&FONT_6X10)
+            .text_color(Gray4::new(0b0000_1111))
+            .build();
+
+        Text::with_baseline("A", Point::new(255, 0), text_style, Baseline::Top)
+            .draw(&mut disp)
+            .unwrap();
+
+        assert_eq!(disp.bounding_box.unwrap().0[0], 127);
+        assert_eq!(disp.bounding_box.unwrap().0[1], 127);
+        assert_eq!(disp.bounding_box.unwrap().1[0], 3);
+        assert_eq!(disp.bounding_box.unwrap().1[1], 7);
+        assert_eq!(disp.num_changed, 5);
 
         let _ = disp.flush_changed();
     }
