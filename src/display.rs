@@ -105,8 +105,10 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
 
     /// Flushes only the changed portion of the display.
     pub fn flush_changed(&mut self) -> Result<(), DisplayError> {
-        if let Some((col_addr, row_addr)) = self.bounding_box {
-            let num_col_bytes: usize = (col_addr[1] - col_addr[0] + 1).into();
+        if let Some((mut col_addr, row_addr)) = self.bounding_box {
+            col_addr[0] -= col_addr[0] % 2;
+            col_addr[1] -= col_addr[1] % 2;
+            let num_col_bytes: usize = (col_addr[1] - col_addr[0] + 2).into();
 
             // Convert bytes to column address
             self.send_command(Command::SetColumnAddress(
