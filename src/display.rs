@@ -95,8 +95,8 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
         command.send(&mut self.display)
     }
 
-    /// Flushes the display, and makes the output visible on the screen.
-    pub fn flush(&mut self) -> Result<(), DisplayError> {
+    /// Flushes the entire display, and makes the output visible on the screen.
+    pub fn flush_all(&mut self) -> Result<(), DisplayError> {
         self.send_command(Command::SetColumnAddress(0x1C, 0x5B))?;
         self.send_command(Command::SetRowAddress(0x00, 0x3F))?;
         self.send_command(Command::WriteRAM)?;
@@ -104,7 +104,7 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
     }
 
     /// Flushes only the changed portion of the display.
-    pub fn flush_changed(&mut self) -> Result<(), DisplayError> {
+    pub fn flush(&mut self) -> Result<(), DisplayError> {
         if let Some((mut col_addr, row_addr)) = self.bounding_box {
             col_addr[0] -= col_addr[0] % 2;
             col_addr[1] -= col_addr[1] % 2;
