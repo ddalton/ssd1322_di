@@ -6,5 +6,7 @@ A project containing this example can be found here: https://github.com/ddalton/
 
 ![Screenshot with text output](examples/IMG_2456.JPG?raw=true "Screenshot with text output")
 
+It has 2 flush methods. The ``flush_all`` method flushes the entire screen. This is needed only if the entire contents of the screen needs to be flushed to the display and should be rarely used since it is an expensive call. Prefer the ``flush`` method which sends only the changed pixels from the last flush call.
+
 # Credits
 Inspired by ssd1322 and ssd1327 drivers.
