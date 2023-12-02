@@ -285,7 +285,7 @@ mod tests {
             assert_eq!(&disp.buffer[start..start + 3], [0, 0xf0, 0]);
         }
 
-        let _ = disp.flush_changed();
+        let _ = disp.flush();
     }
 
     #[test]
@@ -319,7 +319,7 @@ mod tests {
         assert_eq!(disp.bounding_box.unwrap().1[1], 7);
         assert_eq!(disp.num_changed, 16);
 
-        let _ = disp.flush_changed();
+        let _ = disp.flush();
     }
 
     #[test]
@@ -357,7 +357,7 @@ mod tests {
         assert_eq!(disp.bounding_box.unwrap().1[1], 12);
         assert_eq!(disp.num_changed, 16);
 
-        let _ = disp.flush_changed();
+        let _ = disp.flush();
     }
 
     #[test]
@@ -390,6 +390,6 @@ mod tests {
         assert_eq!(disp.bounding_box.unwrap().1[1], 7);
         assert_eq!(disp.num_changed, 5);
 
-        let _ = disp.flush_changed();
+        let _ = disp.flush();
     }
 }
