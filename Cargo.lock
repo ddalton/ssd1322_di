@@ -117,7 +117,7 @@ dependencies = [
 
 [[package]]
 name = "ssd1322_di"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "display-interface",
  "display-interface-spi",
