@@ -10,5 +10,5 @@
 //! Builder example
 extern crate embedded_hal as hal;
 
-mod command;
+pub mod command;
 pub mod display;
