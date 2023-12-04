@@ -32,6 +32,11 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
         }
     }
 
+    /// Releases the display interface.
+    pub fn release(self) -> DI {
+        self.display
+    }
+
     /// Resets the display.
     pub fn reset<RST, DELAY>(
         &mut self,
