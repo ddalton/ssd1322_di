@@ -1,36 +1,61 @@
+//! ssd1322 Commands
 use display_interface::{DataFormat, DisplayError, WriteOnlyDataCommand};
-
-/// ssd1322 Commands
 
 /// Commands - subset of the supported commands
 #[derive(Debug)]
 #[allow(dead_code)]
 pub enum Command {
+    /// Set command unlock
     Unlock,
+    /// Set the column address
     SetColumnAddress(u8, u8),
+    /// Set the row address
     SetRowAddress(u8, u8),
+    /// Set the divide and osc freq
     SetDisplayClock(u8),
+    /// Set the multiplex ratio
     SetMuxRatio(u8),
+    /// Shift mapping RAM counter
     SetDisplayOffset(u8),
+    /// Shift mapping RAM display start line
     SetStartLine(u8),
+    /// Set horizontal address increment
     SetRemapFormat(u8, u8),
+    /// GPIO pins
     SetGPIO(u8),
+    /// Function selection
     SetFunctionSelection(u8),
+    /// Set Display Enhancement A
     SetDisplayEnhancementA(u8, u8),
+    /// Set Contrast current
     SetContrastCurrent(u8),
+    /// Set Master current
     SetMasterCurrent(u8),
+    /// Set linear gray scale table
     SetLinearGrayScaleTable,
+    /// Set phase length
     SetPhaseLength(u8),
+    /// Set Display Enhancement B
     SetDisplayEnhancementB(u8, u8),
+    /// Set pre-charge voltage
     SetPrechargeVoltage(u8),
+    /// Set pre-charge period
     SetPrechargePeriod(u8),
+    /// Set common pins voltage level
     SetVCOMH(u8),
+    /// Set normal display mode
     NormalDisplayMode,
+    /// Set all pixels on
     AllPixelsOn,
+    /// Set all pixels off
     AllPixelsOff,
+    /// Exit partial display
     ExitPartialDisplay,
+    /// Write the data following this command
     WriteRAM,
+    /// Sleep mode off
     DisplayOn,
+    /// Sleep mode on
     DisplayOff,
 }
 
@@ -51,80 +76,31 @@ impl Command {
         };
 
         match self {
-            // Set command unlock
             Command::Unlock => handle_command(&[0xFD, 0x12]),
-
-            // Set the bounding box
             Command::SetColumnAddress(a, b) => handle_command(&[0x15, a, b]),
             Command::SetRowAddress(a, b) => handle_command(&[0x75, a, b]),
-
-            // Set the divide and osc freq
             Command::SetDisplayClock(a) => handle_command(&[0xB3, a]),
-
-            // Set the Multiplex ratio
             Command::SetMuxRatio(a) => handle_command(&[0xCA, a]),
-
-            // Shift mapping RAM counter
             Command::SetDisplayOffset(a) => handle_command(&[0xA2, a]),
-
-            // Shift mapping RAM display start line
             Command::SetStartLine(a) => handle_command(&[0xA1, a]),
-
-            // Set horizontal address increment
             Command::SetRemapFormat(a, b) => handle_command(&[0xA0, a, b]),
-
-            // GPIO pins
             Command::SetGPIO(a) => handle_command(&[0xB5, a]),
-
-            // Function selection
             Command::SetFunctionSelection(a) => handle_command(&[0xAB, a]),
-
-            // Set Display Enhancement A
             Command::SetDisplayEnhancementA(a, b) => handle_command(&[0xB4, a, b]),
-
-            // Set Contrast current
             Command::SetContrastCurrent(a) => handle_command(&[0xC1, a]),
-
-            // Set Master current
             Command::SetMasterCurrent(a) => handle_command(&[0xC7, a]),
-
-            // Set linear gray scale table
             Command::SetLinearGrayScaleTable => handle_command(&[0xB9]),
-
-            // Set phase length
             Command::SetPhaseLength(a) => handle_command(&[0xB1, a]),
-
-            // Set Display Enhancement B
             Command::SetDisplayEnhancementB(a, b) => handle_command(&[0xD1, a, b]),
-
-            // Set pre-charge voltage
             Command::SetPrechargeVoltage(a) => handle_command(&[0xBB, a]),
-
-            // Set pre-charge period
             Command::SetPrechargePeriod(a) => handle_command(&[0xB6, a]),
-
-            // Set common pins voltage level
             Command::SetVCOMH(a) => handle_command(&[0xBE, a]),
-
-            // Set normal display mode
             Command::NormalDisplayMode => handle_command(&[0xA6]),
-
-            // Set all pixels off
             Command::AllPixelsOff => handle_command(&[0xA4]),
-
-            // Set all pixels on
             Command::AllPixelsOn => handle_command(&[0xA5]),
-
-            // Exit partial display
             Command::ExitPartialDisplay => handle_command(&[0xA9]),
-
-            // Write the data following this command
             Command::WriteRAM => handle_command(&[0x5C]),
-
-            // Sleep mode off
             Command::DisplayOn => handle_command(&[0xAF]),
-
-            // Sleep mode on
             Command::DisplayOff => handle_command(&[0xAE]),
         };
 
