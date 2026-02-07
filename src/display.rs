@@ -90,6 +90,11 @@ impl<DI: WriteOnlyDataCommand> Ssd1322<DI> {
         Ok(())
     }
 
+    /// Consumes the display driver and returns the underlying display interface.
+    pub fn release(self) -> DI {
+        self.display
+    }
+
     /// Allows to send custom commands to the display.
     pub fn send_command(&mut self, command: Command) -> Result<(), DisplayError> {
         command.send(&mut self.display)
